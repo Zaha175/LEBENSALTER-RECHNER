@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lebensalter-Rechner</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #e0f7fa;
+            color: #333;
+        }
+
+        h2 {
+            color: #d9a600;
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 1px 1px 2px #555;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #333;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            color: #333;
+            background-color: rgba(255, 255, 255, 0.9);
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 15px 30px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-top: 15px;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        button:hover {
+            background-color: #388E3C;
+            transform: scale(1.05);
+        }
+
+        #result {
+            margin-top: 20px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-align: center;
+            color: #333;
+        }
+
+        #summary {
+            margin-top: 20px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #333;
+        }
+
+        #tips {
+            display: none;
+            margin-top: 20px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #333;
+        }
+
+        #progressBar {
+            width: 0%;
+            height: 25px;
+            background-color: #d9a600;
+            transition: width 1s;
+            margin-top: 20px;
+            border-radius: 4px;
+            text-align: center;
+            color: #fff;
+            font-weight: bold;
+            line-height: 25px;
+            overflow: hidden;
+        }
+
+        canvas {
+            width: 300px;
+            height: 300px;
+            background-color: #fff;
+            margin: 20px auto;
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.7);
+        }
+
+        @media (max-width: 600px) {
+            input, select {
+                width: 100%;
+            }
+
+            h2 {
+                font-size: 1.8rem;
+            }
+
+            button {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h2>LEBENSALTER-RECHNER</h2>
+
+    <div class="form-group">
+        <label for="age">AKTUELLES ALTER:</label>
+        <input type="number" id="age" value="30" title="Gib dein aktuelles Alter ein.">
+
+        <label for="gender">GESCHLECHT:</label>
+        <select id="gender" title="Wähle dein Geschlecht aus.">
+            <option value="0">MÄNNLICH</option>
+            <option value="1">WEIBLICH</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="health">GESUNDHEITSZUSTAND (0 = SEHR SCHLECHT, 1 = AUSGEZEICHNET):</label>
+        <input type="number" id="health" min="0" max="1" step="0.1" value="0.8" title="Dein allgemeiner Gesundheitszustand beeinflusst deine Lebenserwartung.">
+
+        <label for="sport">SPORT (0 = KEINE, 1 = SEHR AKTIV):</label>
+        <input type="number" id="sport" min="0" max="1" step="0.1" value="0.5" title="Regelmäßige sportliche Aktivität kann deine Lebenserwartung erhöhen.">
+
+        <label for="children">KINDER:</label>
+        <select id="children" title="Hast du Kinder?">
+            <option value="0">NEIN</option>
+            <option value="1">JA</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="smoker">RAUCHER:</label>
+        <select id="smoker" title="Bist du Raucher?">
+            <option value="no">NEIN</option>
+            <option value="yes">JA</option>
+        </select>
+
+        <label for="alcohol">ALKOHOLKONSUM (0 = KEINE, 1 = VIEL):</label>
+        <input type="number" id="alcohol" min="0" max="1" step="0.1" value="0.3" title="Übermäßiger Alkoholkonsum kann deine Lebenserwartung verringern.">
+
+        <label for="stress">STRESSLEVEL (0 = NIEDRIG, 1 = HOCH):</label>
+        <input type="number" id="stress" min="0" max="1" step="0.1" value="0.5" title="Hoher Stress kann sich negativ auf deine Lebenserwartung auswirken.">
+
+        <label for="interventions">ANTI-AGING-INTERVENTIONEN (0 = KEINE, 1 = ALLE):</label>
+        <input type="number" id="interventions" min="0" max="1" step="0.1" value="0" title="Anti-Aging-Interventionen können deine Lebenserwartung erhöhen.">
+    </div>
+
+    <button onclick="calculateLifeAge()">LEBENSALTER BERECHNEN</button>
+
+    <div id="result"></div>
+    <div id="summary"></div>
+    <canvas id="lifeChart" width="300" height="300"></canvas>
+    <div id="progressBar"></div>
+    <button onclick="showTips()">TIPPS ZUR VERBESSERUNG</button>
+    <div id="tips">
+        <p>Maßnahmen zur Verbesserung:</p>
+        <ul></ul>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        function calculateLifeAge() {
+            const age = parseInt(document.getElementById('age').value);
+            const gender = parseInt(document.getElementById('gender').value);
+            const health = parseFloat(document.getElementById('health').value);
+            const sport = parseFloat(document.getElementById('sport').value);
+            const children = parseInt(document.getElementById('children').value);
+            const interventions = parseFloat(document.getElementById('interventions').value);
+            const smoker = document.getElementById('smoker').value;
+            const alcohol = parseFloat(document.getElementById('alcohol').value);
+            const stress = parseFloat(document.getElementById('stress').value);
+
+            // Basis-Lebenserwartung
+            let baseLE = gender === 0 ? 80 : 85;
+
+            // Faktoren (angepasste Gewichtung)
+            let healthFactor = health * 7;
+            let sportFactor = sport * 7;
+            let childrenFactor = children * 2;
+            let interventionsFactor = interventions * 5;
+            let smokerFactor = smoker === 'yes' ? -8 : 0;
+            let alcoholFactor = -alcohol * 5;
+            let stressFactor = -stress * 5;
+
+            // Gesamt-Lebenserwartung
+            let totalLE = baseLE + healthFactor + sportFactor + childrenFactor + interventionsFactor + smokerFactor + alcoholFactor + stressFactor;
+
+            // Lebensalter berechnen (mit Obergrenze von 120 Jahren und Untergrenze von 40 Jahren)
+            let lifeAge = Math.max(Math.min(age + (totalLE - age), 120), 40);
+
+            // Ergebnisnachricht
+            let message = lifeAge > baseLE ? "Deine Lebenserwartung ist überdurchschnittlich!" 
+                : "Deine Lebenserwartung könnte verbessert werden durch einen gesünderen Lebensstil.";
+
+            // Ergebnis anzeigen
+            document.getElementById('result').textContent = `Dein berechnetes Lebensalter beträgt: ${lifeAge.toFixed(1)} Jahre. ${message}`;
+            document.getElementById('result').style.color = lifeAge > baseLE ? '#4CAF50' : lifeAge === baseLE ? '#FFC107' : '#F44336';
+
+            // Zusammenfassung anzeigen
+            let summary = `Zusammenfassung: 
+            - Alter: ${age} Jahre
+            - Geschlecht: ${gender === 0 ? 'Männlich' : 'Weiblich'}
+            - Gesundheitszustand: ${health}
+            - Sport: ${sport}
+            - Kinder: ${children === 0 ? 'Nein' : 'Ja'}
+            - Raucher: ${smoker === 'yes' ? 'Ja' : 'Nein'}
+            - Alkoholkonsum: ${alcohol}
+            - Stresslevel: ${stress}
+            - Anti-Aging-Interventionen: ${interventions}`;
+            document.getElementById('summary').textContent = summary;
+
+            // Kreisdiagramm aktualisieren
+            updateChart(lifeAge);
+
+            // Fortschrittsbalken animieren
+            animateProgressBar(lifeAge);
+        }
+
+        function updateChart(lifeAge) {
+            const ctx = document.getElementById('lifeChart').getContext('2d');
+            const age = parseInt(document.getElementById('age').value); // Aktuelles Alter des Benutzers
+            const remainingYears = lifeAge - age; // Verbleibende Jahre
+
+            if (window.lifeChartInstance) {
+                window.lifeChartInstance.destroy();
+            }
+
+            window.lifeChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Bereits gelebt', 'Verbleibende Jahre'],
+                    datasets: [{
+                        data: [age, remainingYears], // Aktuelles Alter und verbleibende Jahre
+                        backgroundColor: ['#4CAF50', '#FFC107'],
+                    }]
+                },
+                options: {
+                    responsive: false,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                color: '#000'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if (context.dataIndex === 1) {
+                                        return `Noch ${remainingYears} Jahre zu leben`;
+                                    }
+                                    return `Bereits ${age} Jahre gelebt`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Zentralen Text im Diagramm anzeigen
+            Chart.plugins.register({
+                beforeDraw: function(chart) {
+                    const width = chart.width,
+                          height = chart.height,
+                          ctx = chart.ctx;
+                    ctx.restore();
+                    ctx.font = "bold 1.5rem sans-serif"; /* Größer und fett */
+                    ctx.textBaseline = "middle";
+                    ctx.textAlign = "center";
+                    ctx.fillStyle = '#000'; /* Schriftfarbe Schwarz */
+                    const text = `Noch ${remainingYears} Jahre zu leben`;
+                    ctx.fillText(text, width / 2, height / 2);
+                    ctx.save();
+                }
+            });
+        }
+
+        function animateProgressBar(lifeAge) {
+            const progressBar = document.getElementById('progressBar');
+            const age = parseInt(document.getElementById('age').value);
+            const remainingYears = 120 - lifeAge;
+            const percentage = ((lifeAge - age) / (120 - age)) * 100;
+            progressBar.style.width = percentage + '%';
+            progressBar.textContent = `Noch ${remainingYears.toFixed(1)} Jahre zu leben – ${percentage.toFixed(1)}% des Lebens erreicht`;
+
+            // Starte die Animation für den Fortschrittsbalken
+            setTimeout(() => {
+              progressBar.classList.add('active');
+            }, 100);
+        }
+
+        function showTips() {
+            const health = parseFloat(document.getElementById('health').value);
+            const sport = parseFloat(document.getElementById('sport').value);
+            const smoker = document.getElementById('smoker').value;
+            const alcohol = parseFloat(document.getElementById('alcohol').value);
+            const stress = parseFloat(document.getElementById('stress').value);
+
+            let tips = [];
+            if (health < 0.5) tips.push("Verbessere deinen Gesundheitszustand durch gesunde Ernährung und regelmäßige Arztbesuche.");
+            if (sport < 0.5) tips.push("Bewege dich mehr – tägliche Spaziergänge oder Sport können helfen.");
+            if (smoker === 'yes') tips.push("Hör auf zu rauchen, um deine Lebenserwartung zu erhöhen.");
+            if (alcohol > 0.5) tips.push("Reduziere deinen Alkoholkonsum für ein gesünderes Leben.");
+            if (stress > 0.5) tips.push("Nutze Entspannungstechniken wie Meditation oder Yoga.");
+
+            document.getElementById('tips').style.display = 'block';
+            document.getElementById('tips').innerHTML = `<p>Maßnahmen zur Verbesserung:</p><ul>${tips.map(tip => `<li>${tip}</li>`).join('')}</ul>`;
+        }
+
+        // Initiales Diagramm rendern
+        document.addEventListener('DOMContentLoaded', () => {
+            updateChart(80); // Testwert, um das Diagramm initial zu rendern
+        });
+    </script>
+</body>
+</html>
