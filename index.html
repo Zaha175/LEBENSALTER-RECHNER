@@ -1,347 +1,1237 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
+<!DOCTYPE html><html lang="de"><head><meta name="x-poe-datastore-behavior" content="local_only"><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lebensalter-Rechner</title>
+    <title>Lebensalter-Rechner 2.0 – mit ReHMGB1-Modul</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body {
-            font-family: 'Arial', sans-serif;
+        * {
             margin: 0;
-            padding: 20px;
-            background-color: #e0f7fa;
-            color: #333;
-        }
-
-        h2 {
-            color: #d9a600;
-            font-size: 2.5rem;
-            font-weight: bold;
-            text-transform: uppercase;
-            text-align: center;
-            margin-bottom: 30px;
-            text-shadow: 1px 1px 2px #555;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            text-transform: uppercase;
-            color: #333;
-        }
-
-        input, select {
-            width: 100%;
-            padding: 10px;
-            font-size: 1rem;
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            color: #333;
-            background-color: rgba(255, 255, 255, 0.9);
+            padding: 0;
             box-sizing: border-box;
         }
 
-        button {
-            padding: 15px 30px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1.1rem;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-top: 15px;
-            transition: background-color 0.3s, transform 0.3s;
+        :root {
+            --bg-primary: #0a0f1a;
+            --bg-secondary: #111827;
+            --bg-card: rgba(255,255,255,0.03);
+            --accent-green: #10b981;
+            --accent-blue: #3b82f6;
+            --accent-red: #ef4444;
+            --accent-orange: #f59e0b;
+            --accent-purple: #8b5cf6;
+            --accent-cyan: #06b6d4;
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --border-color: rgba(255,255,255,0.1);
         }
 
-        button:hover {
-            background-color: #388E3C;
-            transform: scale(1.05);
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
         }
 
-        #result {
-            margin-top: 20px;
-            font-weight: bold;
-            font-size: 1.2rem;
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
             text-align: center;
-            color: #333;
+            padding: 40px 20px;
+            margin-bottom: 30px;
         }
 
-        #summary {
-            margin-top: 20px;
-            font-weight: bold;
-            font-size: 1.1rem;
-            color: #333;
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(90deg, var(--accent-green), var(--accent-cyan), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
         }
 
-        #tips {
-            display: none;
-            margin-top: 20px;
-            font-weight: bold;
-            font-size: 1.1rem;
-            color: #333;
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1.1em;
         }
 
-        #progressBar {
-            width: 0%;
-            height: 25px;
-            background-color: #d9a600;
-            transition: width 1s;
-            margin-top: 20px;
-            border-radius: 4px;
-            text-align: center;
-            color: #fff;
-            font-weight: bold;
-            line-height: 25px;
-            overflow: hidden;
+        .version-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            margin-top: 10px;
         }
 
-        canvas {
-            width: 300px;
-            height: 300px;
-            background-color: #fff;
-            margin: 20px auto;
-            display: block;
+        /* Main Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
         }
 
+        @media (max-width: 900px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .card h2 {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card h2 .icon {
+            font-size: 1.2em;
+        }
+
+        .card.green-accent {
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .card.red-accent {
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .card.blue-accent {
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .card.purple-accent {
+            border-color: rgba(139, 92, 246, 0.3);
+        }
+
+        /* Form Elements */
         .form-group {
             margin-bottom: 20px;
-            border: 1px solid #ccc;
+        }
+
+        .form-group label {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            margin-bottom: 8px;
+        }
+
+        .form-group label .hint {
+            color: var(--accent-cyan);
+            font-size: 0.85em;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        input[type="number"],
+        input[type="range"],
+        select {
+            width: 100%;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px 15px;
+            color: var(--text-primary);
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, var(--accent-green), var(--accent-orange), var(--accent-red));
+            padding: 0;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .range-value {
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: var(--accent-cyan);
+            margin-top: 5px;
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        select option {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        /* Calculate Button */
+        .calculate-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-cyan));
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+        }
+
+        /* Results Section */
+        .results-section {
+            margin-top: 30px;
+        }
+
+        .result-main {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(59, 130, 246, 0.1));
+            border: 2px solid var(--accent-green);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .result-main .label {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .result-main .value {
+            font-size: 4em;
+            font-weight: bold;
+            background: linear-gradient(90deg, var(--accent-green), var(--accent-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .result-main .remaining {
+            font-size: 1.3em;
+            color: var(--text-primary);
+            margin-top: 10px;
+        }
+
+        .result-main .message {
+            margin-top: 15px;
             padding: 15px;
-            border-radius: 5px;
-            background-color: rgba(255, 255, 255, 0.7);
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            font-size: 1em;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+            color: var(--text-secondary);
+        }
+
+        .progress-bar-bg {
+            height: 30px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-green), var(--accent-cyan), var(--accent-blue));
+            border-radius: 15px;
+            transition: width 1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.85em;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+            min-width: 60px;
+        }
+
+        /* Score Cards */
+        .score-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
         }
 
         @media (max-width: 600px) {
-            input, select {
-                width: 100%;
+            .score-grid {
+                grid-template-columns: 1fr;
             }
+        }
 
-            h2 {
-                font-size: 1.8rem;
-            }
+        .score-card {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
 
-            button {
-                font-size: 1rem;
-            }
+        .score-card .score-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .score-card .score-label {
+            color: var(--text-secondary);
+            font-size: 0.85em;
+            margin-bottom: 5px;
+        }
+
+        .score-card .score-value {
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+
+        .score-card.protection .score-value {
+            color: var(--accent-green);
+        }
+
+        .score-card.burden .score-value {
+            color: var(--accent-red);
+        }
+
+        .score-card.redox .score-value {
+            color: var(--accent-purple);
+        }
+
+        /* Chart Container */
+        .chart-container {
+            background: rgba(0,0,0,0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .chart-container canvas {
+            max-height: 250px;
+        }
+
+        /* ReHMGB1 Section */
+        .rehmgb1-section {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(236, 72, 153, 0.1));
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .rehmgb1-section h3 {
+            color: var(--accent-purple);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .rehmgb1-meter {
+            height: 20px;
+            background: linear-gradient(90deg, var(--accent-green), var(--accent-orange), var(--accent-red));
+            border-radius: 10px;
+            position: relative;
+            margin: 15px 0;
+        }
+
+        .rehmgb1-indicator {
+            position: absolute;
+            top: -5px;
+            width: 10px;
+            height: 30px;
+            background: white;
+            border-radius: 3px;
+            transition: left 0.5s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .rehmgb1-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8em;
+            color: var(--text-secondary);
+        }
+
+        /* Tips Section */
+        .tips-section {
+            margin-top: 30px;
+        }
+
+        .tips-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .tip-card {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid var(--accent-green);
+            transition: transform 0.2s ease;
+        }
+
+        .tip-card:hover {
+            transform: translateX(5px);
+        }
+
+        .tip-card.warning {
+            border-left-color: var(--accent-orange);
+        }
+
+        .tip-card.danger {
+            border-left-color: var(--accent-red);
+        }
+
+        .tip-card .tip-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .tip-card .tip-icon {
+            font-size: 1.5em;
+        }
+
+        .tip-card h4 {
+            color: var(--text-primary);
+            font-size: 1em;
+        }
+
+        .tip-card p {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+        }
+
+        .tip-card .impact {
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 8px;
+            font-size: 0.85em;
+            color: var(--accent-green);
+        }
+
+        /* Supplement Table */
+        .supplement-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .supplement-table th,
+        .supplement-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9em;
+        }
+
+        .supplement-table th {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent-blue);
+            font-weight: 600;
+        }
+
+        .supplement-table tr:hover {
+            background: rgba(255,255,255,0.02);
+        }
+
+        .supplement-table .dosage {
+            color: var(--accent-green);
+            font-weight: 500;
+        }
+
+        .supplement-table .warning-text {
+            color: var(--accent-orange);
+            font-size: 0.8em;
+        }
+
+        /* Summary Box */
+        .summary-box {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            color: var(--text-secondary);
+            white-space: pre-wrap;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        /* Info Tooltip */
+        .info-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            background: var(--accent-blue);
+            border-radius: 50%;
+            font-size: 0.7em;
+            cursor: help;
+            margin-left: 5px;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            margin-top: 40px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .footer .brand {
+            font-size: 1.3em;
+            font-weight: bold;
+            background: linear-gradient(90deg, var(--accent-green), var(--accent-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
-    <h2>LEBENSALTER-RECHNER</h2>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>🧬 Lebensalter-Rechner 2.0</h1>
+            <p>Mit ReHMGB1-Modul &amp; wissenschaftlicher Redox-Balance-Berechnung</p>
+            <span class="version-badge">Version 2.0 – inkl. Seneszenz-Proxy</span>
+        </header>
 
-    <div class="form-group">
-        <label for="age">AKTUELLES ALTER:</label>
-        <input type="number" id="age" value="30" title="Gib dein aktuelles Alter ein.">
+        <!-- Main Grid -->
+        <div class="main-grid">
+            <!-- Left Column: Inputs -->
+            <div class="input-column">
+                <!-- Basis-Daten -->
+                <div class="card blue-accent">
+                    <h2><span class="icon">👤</span> Basis-Daten</h2>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Aktuelles Alter</label>
+                            <input type="number" id="age" value="35" min="0" max="120">
+                        </div>
+                        <div class="form-group">
+                            <label>Geschlecht</label>
+                            <select id="gender">
+                                <option value="0">Männlich</option>
+                                <option value="1">Weiblich</option>
+                            </select>
+                        </div>
+                    </div>
 
-        <label for="gender">GESCHLECHT:</label>
-        <select id="gender" title="Wähle dein Geschlecht aus.">
-            <option value="0">MÄNNLICH</option>
-            <option value="1">WEIBLICH</option>
-        </select>
+                    <div class="form-group">
+                        <label>Gesundheitszustand <span class="hint">(0 = schlecht, 1 = ausgezeichnet)</span></label>
+                        <input type="range" id="health" min="0" max="1" step="0.1" value="0.7">
+                        <div class="range-value" id="healthValue">0.7</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Sportliche Aktivität <span class="hint">(0 = keine, 1 = sehr aktiv)</span></label>
+                        <input type="range" id="sport" min="0" max="1" step="0.1" value="0.5">
+                        <div class="range-value" id="sportValue">0.5</div>
+                    </div>
+                </div>
+
+                <!-- Risikofaktoren -->
+                <div class="card red-accent" style="margin-top: 20px;">
+                    <h2><span class="icon">⚠️</span> Risikofaktoren (Redox-Last)</h2>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Raucher?</label>
+                            <select id="smoker">
+                                <option value="no">Nein</option>
+                                <option value="yes">Ja</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Kinder?</label>
+                            <select id="children">
+                                <option value="0">Nein</option>
+                                <option value="1">Ja</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Alkoholkonsum <span class="hint">(0 = keiner, 1 = viel)</span></label>
+                        <input type="range" id="alcohol" min="0" max="1" step="0.1" value="0.2">
+                        <div class="range-value" id="alcoholValue">0.2</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Stresslevel <span class="hint">(0 = niedrig, 1 = hoch)</span></label>
+                        <input type="range" id="stress" min="0" max="1" step="0.1" value="0.4">
+                        <div class="range-value" id="stressValue">0.4</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Schlafqualität <span class="hint">(0 = schlecht, 1 = ausgezeichnet)</span> <span class="info-icon" title="Schlechter Schlaf erhöht systemische Entzündung">?</span></label>
+                        <input type="range" id="sleep" min="0" max="1" step="0.1" value="0.6">
+                        <div class="range-value" id="sleepValue">0.6</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Chronische Entzündungen <span class="hint">(0 = keine, 1 = schwer)</span> <span class="info-icon" title="z.B. Autoimmun, Arthritis, Darm">?</span></label>
+                        <input type="range" id="inflammation" min="0" max="1" step="0.1" value="0.1">
+                        <div class="range-value" id="inflammationValue">0.1</div>
+                    </div>
+                </div>
+
+                <!-- Anti-Aging Interventionen -->
+                <div class="card green-accent" style="margin-top: 20px;">
+                    <h2><span class="icon">🛡️</span> Anti-Aging Interventionen (Redox-Schutz)</h2>
+                    
+                    <div class="form-group">
+                        <label>Anti-Aging Interventionen <span class="hint">(0 = keine, 1 = alle)</span></label>
+                        <input type="range" id="interventions" min="0" max="1" step="0.1" value="0.3">
+                        <div class="range-value" id="interventionsValue">0.3</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Fasten/Kalorienrestriktion <span class="hint">(0 = nie, 1 = regelmäßig)</span></label>
+                        <input type="range" id="fasting" min="0" max="1" step="0.1" value="0.2">
+                        <div class="range-value" id="fastingValue">0.2</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>HMGB1-Blocker (Glycyrrhizin etc.) <span class="hint">(0 = nein, 1 = regelmäßig)</span></label>
+                        <input type="range" id="hmgb1Blocker" min="0" max="1" step="0.1" value="0">
+                        <div class="range-value" id="hmgb1BlockerValue">0</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ernährungsqualität <span class="hint">(0 = schlecht, 1 = optimal anti-inflammatorisch)</span></label>
+                        <input type="range" id="nutrition" min="0" max="1" step="0.1" value="0.5">
+                        <div class="range-value" id="nutritionValue">0.5</div>
+                    </div>
+                </div>
+
+                <!-- Calculate Button -->
+                <button class="calculate-btn" onclick="calculateLifeAge()">
+                    🧬 Lebenserwartung berechnen
+                </button>
+            </div>
+
+            <!-- Right Column: Results -->
+            <div class="results-column">
+                <!-- Main Result -->
+                <div class="result-main pulse" id="resultMain">
+                    <div class="label">PROGNOSE LEBENSERWARTUNG</div>
+                    <div class="value" id="predictedLE">--</div>
+                    <div class="remaining" id="remainingYears">Jahre</div>
+                    <div class="message" id="resultMessage">Gib deine Daten ein und klicke auf "Berechnen"</div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="progress-container">
+                    <div class="progress-header">
+                        <span>Lebensverlauf</span>
+                        <span id="progressLabel">0% gelebt</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" id="progressBar" style="width: 0%;">0%</div>
+                    </div>
+                </div>
+
+                <!-- Score Cards -->
+                <div class="score-grid">
+                    <div class="score-card protection">
+                        <div class="score-icon">🛡️</div>
+                        <div class="score-label">Schutz-Score</div>
+                        <div class="score-value" id="protectionScore">0</div>
+                    </div>
+                    <div class="score-card burden">
+                        <div class="score-icon">⚡</div>
+                        <div class="score-label">Last-Score</div>
+                        <div class="score-value" id="burdenScore">0</div>
+                    </div>
+                    <div class="score-card redox">
+                        <div class="score-icon">🧬</div>
+                        <div class="score-label">Redox-Balance</div>
+                        <div class="score-value" id="redoxScore">0</div>
+                    </div>
+                </div>
+
+                <!-- ReHMGB1 Section -->
+                <div class="rehmgb1-section">
+                    <h3>🔬 ReHMGB1-Proxy (Systemische Seneszenz)</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.9em; margin-bottom: 10px;">
+                        Geschätztes Niveau basierend auf Stress, Entzündung, Schlaf &amp; Interventionen
+                    </p>
+                    <div class="rehmgb1-meter">
+                        <div class="rehmgb1-indicator" id="rehmgb1Indicator" style="left: 50%;"></div>
+                    </div>
+                    <div class="rehmgb1-labels">
+                        <span>🟢 Niedrig (jung)</span>
+                        <span>🟡 Moderat</span>
+                        <span>🔴 Hoch (gealtert)</span>
+                    </div>
+                    <div id="rehmgb1Text" style="text-align: center; margin-top: 15px; font-size: 0.9em; color: var(--text-secondary);">
+                        --
+                    </div>
+                </div>
+
+                <!-- Chart -->
+                <div class="chart-container">
+                    <canvas id="lifeChart"></canvas>
+                </div>
+
+                <!-- Summary -->
+                <div class="summary-box" id="summary">
+Zusammenfassung wird nach Berechnung angezeigt...
+                </div>
+            </div>
+        </div>
+
+        <!-- Tips Section -->
+        <section class="tips-section" id="tipsSection">
+            <div class="card">
+                <h2><span class="icon">💡</span> Personalisierte Tipps zur Verbesserung</h2>
+                <div class="tips-grid" id="tipsGrid">
+                    <!-- Tips will be dynamically inserted -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Supplement Table -->
+        <section class="card" style="margin-top: 30px;">
+            <h2><span class="icon">💊</span> Anti-Aging Supplements (ReHMGB1-Fokus)</h2>
+            <table class="supplement-table">
+                <thead>
+                    <tr>
+                        <th>Produkt</th>
+                        <th>Zweck</th>
+                        <th>Empfohlene Dosierung</th>
+                        <th>Hinweise</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Resveratrol (hochdosiert)</strong></td>
+                        <td>Aktiviert Sirtuine &amp; schützt Mitochondrien</td>
+                        <td class="dosage">250–500 mg morgens nüchtern</td>
+                        <td>Bevorzuge Trans-Resveratrol, nicht nur „Weinextrakt"</td>
+                    </tr>
+                    <tr>
+                        <td><strong>NMN oder NR</strong></td>
+                        <td>Erhöht NAD⁺ – Energieversorgung der Zelle</td>
+                        <td class="dosage">250–300 mg morgens</td>
+                        <td>Falls vorhanden, ggf. online</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Magnesiumcitrat</strong></td>
+                        <td>Blockiert Kalziumüberladung / Muskelregulation</td>
+                        <td class="dosage">300 mg abends</td>
+                        <td>Gut verträglich, entspannend</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Süßholzwurzel / Glycyrrhizin</strong></td>
+                        <td>Hemmt entzündliche HMGB1-Aktivität</td>
+                        <td class="dosage">100–200 mg oder 1–2 Tassen Tee</td>
+                        <td class="warning-text">⚠️ Nicht bei Bluthochdruck!</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Grüner Tee (EGCG)</strong></td>
+                        <td>Zellschutz durch Polyphenole &amp; Synergie mit Resveratrol</td>
+                        <td class="dosage">1–3 Tassen täglich</td>
+                        <td>Bio-Qualität bevorzugen</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Omega-3 (EPA/DHA)</strong></td>
+                        <td>Anti-inflammatorisch, Zellmembran-Schutz</td>
+                        <td class="dosage">1–2g täglich</td>
+                        <td>Hochwertiges Fischöl oder Algenöl</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Quercetin</strong></td>
+                        <td>Senolytikum – eliminiert seneszente Zellen</td>
+                        <td class="dosage">500mg intermittierend</td>
+                        <td>Oft kombiniert mit Dasatinib (Forschung)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="brand">🧬 Lebensalter-Rechner 2.0</div>
+            <p>Basierend auf der Korea University ReHMGB1-Studie 2025</p>
+            <p style="font-size: 0.85em; margin-top: 10px;">
+                Hinweis: Dieser Rechner dient nur zur Orientierung und ersetzt keine medizinische Beratung.
+            </p>
+        </footer>
     </div>
 
-    <div class="form-group">
-        <label for="health">GESUNDHEITSZUSTAND (0 = SEHR SCHLECHT, 1 = AUSGEZEICHNET):</label>
-        <input type="number" id="health" min="0" max="1" step="0.1" value="0.8" title="Dein allgemeiner Gesundheitszustand beeinflusst deine Lebenserwartung.">
-
-        <label for="sport">SPORT (0 = KEINE, 1 = SEHR AKTIV):</label>
-        <input type="number" id="sport" min="0" max="1" step="0.1" value="0.5" title="Regelmäßige sportliche Aktivität kann deine Lebenserwartung erhöhen.">
-
-        <label for="children">KINDER:</label>
-        <select id="children" title="Hast du Kinder?">
-            <option value="0">NEIN</option>
-            <option value="1">JA</option>
-        </select>
-    </div>
-
-    <div class="form-group">
-        <label for="smoker">RAUCHER:</label>
-        <select id="smoker" title="Bist du Raucher?">
-            <option value="no">NEIN</option>
-            <option value="yes">JA</option>
-        </select>
-
-        <label for="alcohol">ALKOHOLKONSUM (0 = KEINE, 1 = VIEL):</label>
-        <input type="number" id="alcohol" min="0" max="1" step="0.1" value="0.3" title="Übermäßiger Alkoholkonsum kann deine Lebenserwartung verringern.">
-
-        <label for="stress">STRESSLEVEL (0 = NIEDRIG, 1 = HOCH):</label>
-        <input type="number" id="stress" min="0" max="1" step="0.1" value="0.5" title="Hoher Stress kann sich negativ auf deine Lebenserwartung auswirken.">
-
-        <label for="interventions">ANTI-AGING-INTERVENTIONEN (0 = KEINE, 1 = ALLE):</label>
-        <input type="number" id="interventions" min="0" max="1" step="0.1" value="0" title="Anti-Aging-Interventionen können deine Lebenserwartung erhöhen.">
-    </div>
-
-    <button onclick="calculateLifeAge()">LEBENSALTER BERECHNEN</button>
-
-    <div id="result"></div>
-    <div id="summary"></div>
-    <canvas id="lifeChart" width="300" height="300"></canvas>
-    <div id="progressBar"></div>
-    <button onclick="showTips()">TIPPS ZUR VERBESSERUNG</button>
-    <div id="tips">
-        <p>Maßnahmen zur Verbesserung:</p>
-        <ul></ul>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        function calculateLifeAge() {
-            const age = parseInt(document.getElementById('age').value);
-            const gender = parseInt(document.getElementById('gender').value);
-            const health = parseFloat(document.getElementById('health').value);
-            const sport = parseFloat(document.getElementById('sport').value);
-            const children = parseInt(document.getElementById('children').value);
-            const interventions = parseFloat(document.getElementById('interventions').value);
-            const smoker = document.getElementById('smoker').value;
-            const alcohol = parseFloat(document.getElementById('alcohol').value);
-            const stress = parseFloat(document.getElementById('stress').value);
+        let lifeChartInstance = null;
 
-            // Basis-Lebenserwartung
-            let baseLE = gender === 0 ? 80 : 85;
-
-            // Faktoren (angepasste Gewichtung)
-            let healthFactor = health * 7;
-            let sportFactor = sport * 7;
-            let childrenFactor = children * 2;
-            let interventionsFactor = interventions * 5;
-            let smokerFactor = smoker === 'yes' ? -8 : 0;
-            let alcoholFactor = -alcohol * 5;
-            let stressFactor = -stress * 5;
-
-            // Gesamt-Lebenserwartung
-            let totalLE = baseLE + healthFactor + sportFactor + childrenFactor + interventionsFactor + smokerFactor + alcoholFactor + stressFactor;
-
-            // Lebensalter berechnen (mit Obergrenze von 120 Jahren und Untergrenze von 40 Jahren)
-            let lifeAge = Math.max(Math.min(age + (totalLE - age), 120), 40);
-
-            // Ergebnisnachricht
-            let message = lifeAge > baseLE ? "Deine Lebenserwartung ist überdurchschnittlich!" 
-                : "Deine Lebenserwartung könnte verbessert werden durch einen gesünderen Lebensstil.";
-
-            // Ergebnis anzeigen
-            document.getElementById('result').textContent = `Dein berechnetes Lebensalter beträgt: ${lifeAge.toFixed(1)} Jahre. ${message}`;
-            document.getElementById('result').style.color = lifeAge > baseLE ? '#4CAF50' : lifeAge === baseLE ? '#FFC107' : '#F44336';
-
-            // Zusammenfassung anzeigen
-            let summary = `Zusammenfassung: 
-            - Alter: ${age} Jahre
-            - Geschlecht: ${gender === 0 ? 'Männlich' : 'Weiblich'}
-            - Gesundheitszustand: ${health}
-            - Sport: ${sport}
-            - Kinder: ${children === 0 ? 'Nein' : 'Ja'}
-            - Raucher: ${smoker === 'yes' ? 'Ja' : 'Nein'}
-            - Alkoholkonsum: ${alcohol}
-            - Stresslevel: ${stress}
-            - Anti-Aging-Interventionen: ${interventions}`;
-            document.getElementById('summary').textContent = summary;
-
-            // Kreisdiagramm aktualisieren
-            updateChart(lifeAge);
-
-            // Fortschrittsbalken animieren
-            animateProgressBar(lifeAge);
+        // Utility Functions
+        function clamp(x, min, max) {
+            return Math.min(Math.max(x, min), max);
         }
 
-        function updateChart(lifeAge) {
-            const ctx = document.getElementById('lifeChart').getContext('2d');
-            const age = parseInt(document.getElementById('age').value); // Aktuelles Alter des Benutzers
-            const remainingYears = lifeAge - age; // Verbleibende Jahre
+        function getVal(id) {
+            const el = document.getElementById(id);
+            if (!el) return 0;
+            const v = parseFloat(el.value);
+            return isNaN(v) ? 0 : v;
+        }
 
-            if (window.lifeChartInstance) {
-                window.lifeChartInstance.destroy();
+        function read01(id) {
+            return clamp(getVal(id), 0, 1);
+        }
+
+        // Update Range Value Displays
+        document.querySelectorAll('input[type="range"]').forEach(input => {
+            const valueDisplay = document.getElementById(input.id + 'Value');
+            if (valueDisplay) {
+                input.addEventListener('input', () => {
+                    valueDisplay.textContent = parseFloat(input.value).toFixed(1);
+                });
+            }
+        });
+
+        // Main Calculation Function
+        function calculateLifeAge() {
+            // Read all inputs
+            const age = clamp(parseInt(document.getElementById('age').value, 10) || 0, 0, 120);
+            const gender = parseInt(document.getElementById('gender').value, 10) || 0;
+
+            const health = read01('health');
+            const sport = read01('sport');
+            const interventions = read01('interventions');
+            const alcohol = read01('alcohol');
+            const stress = read01('stress');
+            const sleep = read01('sleep');
+            const inflammation = read01('inflammation');
+            const fasting = read01('fasting');
+            const hmgb1Blocker = read01('hmgb1Blocker');
+            const nutrition = read01('nutrition');
+
+            const children = parseInt(document.getElementById('children').value, 10) || 0;
+            const smoker = document.getElementById('smoker').value;
+
+            // Basis-Lebenserwartung (Baseline nach Geschlecht)
+            const baseLE = gender === 0 ? 78 : 83;
+
+            // === SCHUTZ-SCORE (Redox-Schutz) ===
+            const protection = 
+                (health * 7.0) +           // Gesundheit: max +7
+                (sport * 6.0) +             // Sport: max +6
+                (interventions * 4.0) +     // Interventionen: max +4
+                (fasting * 3.0) +           // Fasten: max +3
+                (hmgb1Blocker * 5.0) +      // HMGB1-Blocker: max +5 (NEU!)
+                (nutrition * 4.0) +         // Ernährung: max +4
+                (sleep * 3.0) +             // Schlaf: max +3 (invertiert: guter Schlaf = Schutz)
+                (children ? 1.5 : 0);       // Kinder: +1.5
+
+            // === LAST-SCORE (Redox-Last / Pro-Aging) ===
+            const burden = 
+                (smoker === 'yes' ? 10.0 : 0) +  // Rauchen: -10
+                (alcohol * 6.0) +                 // Alkohol: max -6
+                (stress * 6.0) +                  // Stress: max -6
+                ((1 - sleep) * 4.0) +             // Schlechter Schlaf: max -4
+                (inflammation * 8.0);             // Chronische Entzündung: max -8 (NEU!)
+
+            // === ReHMGB1-PROXY berechnen ===
+            // Hohe Werte = mehr systemische Alterung
+            const rehmgb1Proxy = clamp(
+                ((stress * 25) + 
+                 (inflammation * 30) + 
+                 ((1 - sleep) * 20) + 
+                 (smoker === 'yes' ? 15 : 0) +
+                 (alcohol * 10) -
+                 (hmgb1Blocker * 20) -
+                 (fasting * 10) -
+                 (sport * 10)), 
+                0, 100
+            );
+
+            // === PROGNOSE berechnen ===
+            let predictedLE = baseLE + protection - burden;
+
+            // Altersabhängiger Bonus/Malus
+            // Jüngere profitieren mehr von Interventionen
+            if (age < 40) {
+                predictedLE += (40 - age) * 0.05;
+            }
+            // Ältere haben schon mehr akkumuliert
+            if (age > 60) {
+                predictedLE -= (age - 60) * 0.1;
             }
 
-            window.lifeChartInstance = new Chart(ctx, {
+            // Plausibilitätsgrenzen
+            predictedLE = clamp(predictedLE, 45, 115);
+
+            const remainingYears = Math.max(0, predictedLE - age);
+
+            // === REDOX-BALANCE ===
+            const redoxBalance = clamp(protection - burden + 20, 0, 50);
+
+            // === MESSAGE bestimmen ===
+            let message = "";
+            let messageColor = "";
+
+            if (predictedLE >= baseLE + 10) {
+                message = "🌟 Hervorragend! Du liegst weit über dem Durchschnitt. Dein Lebensstil wirkt stark verjüngend.";
+                messageColor = "#10b981";
+            } else if (predictedLE >= baseLE + 5) {
+                message = "✨ Sehr gut! Überdurchschnittliche Prognose. Kleine Optimierungen können noch mehr bringen.";
+                messageColor = "#10b981";
+            } else if (predictedLE >= baseLE) {
+                message = "👍 Solide! Du liegst im Bereich oder leicht über dem Durchschnitt.";
+                messageColor = "#f59e0b";
+            } else if (predictedLE >= baseLE - 5) {
+                message = "⚡ Verbesserungspotential! Mit gezielten Änderungen kannst du deine Prognose deutlich steigern.";
+                messageColor = "#f59e0b";
+            } else {
+                message = "⚠️ Achtung! Dein aktueller Lebensstil verkürzt deine Lebenserwartung. Handlungsbedarf!";
+                messageColor = "#ef4444";
+            }
+
+            // === UI UPDATES ===
+            
+            // Main Result
+            document.getElementById('predictedLE').textContent = predictedLE.toFixed(1);
+            document.getElementById('remainingYears').textContent = `Noch ca. ${remainingYears.toFixed(0)} Jahre zu leben`;
+            document.getElementById('resultMessage').textContent = message;
+            document.getElementById('resultMessage').style.color = messageColor;
+
+            // Score Cards
+            document.getElementById('protectionScore').textContent = `+${protection.toFixed(1)}`;
+            document.getElementById('burdenScore').textContent = `-${burden.toFixed(1)}`;
+            document.getElementById('redoxScore').textContent = redoxBalance.toFixed(0);
+
+            // Progress Bar
+            const progressPct = predictedLE > 0 ? clamp((age / predictedLE) * 100, 0, 100) : 0;
+            document.getElementById('progressBar').style.width = progressPct + '%';
+            document.getElementById('progressBar').textContent = `${progressPct.toFixed(0)}%`;
+            document.getElementById('progressLabel').textContent = `${progressPct.toFixed(1)}% gelebt`;
+
+            // ReHMGB1 Meter
+            document.getElementById('rehmgb1Indicator').style.left = `calc(${rehmgb1Proxy}% - 5px)`;
+            
+            let rehmgb1Text = "";
+            if (rehmgb1Proxy < 25) {
+                rehmgb1Text = "🟢 Niedriger ReHMGB1-Proxy – Dein systemisches Alterungsniveau ist gering.";
+            } else if (rehmgb1Proxy < 50) {
+                rehmgb1Text = "🟡 Moderater ReHMGB1-Proxy – Einige Faktoren treiben die Seneszenz voran.";
+            } else if (rehmgb1Proxy < 75) {
+                rehmgb1Text = "🟠 Erhöhter ReHMGB1-Proxy – Dein Körper zeigt Anzeichen systemischer Alterung.";
+            } else {
+                rehmgb1Text = "🔴 Hoher ReHMGB1-Proxy – Signifikante systemische Seneszenz! Intervention empfohlen.";
+            }
+            document.getElementById('rehmgb1Text').textContent = rehmgb1Text;
+
+            // Summary
+            document.getElementById('summary').textContent = 
+`═══════════════════════════════════════════
+          ZUSAMMENFASSUNG
+═══════════════════════════════════════════
+Alter:                  ${age} Jahre
+Geschlecht:             ${gender === 0 ? 'Männlich' : 'Weiblich'}
+Basis-LE:               ${baseLE} Jahre
+
+── EINGABEN ──────────────────────────────
+Gesundheit:             ${health.toFixed(1)}
+Sport:                  ${sport.toFixed(1)}
+Interventionen:         ${interventions.toFixed(1)}
+Fasten:                 ${fasting.toFixed(1)}
+HMGB1-Blocker:          ${hmgb1Blocker.toFixed(1)}
+Ernährung:              ${nutrition.toFixed(1)}
+Schlaf:                 ${sleep.toFixed(1)}
+Rauchen:                ${smoker === 'yes' ? 'Ja' : 'Nein'}
+Alkohol:                ${alcohol.toFixed(1)}
+Stress:                 ${stress.toFixed(1)}
+Entzündung:             ${inflammation.toFixed(1)}
+Kinder:                 ${children ? 'Ja' : 'Nein'}
+
+── BERECHNUNG ────────────────────────────
+Schutz-Score:           +${protection.toFixed(1)} Jahre
+Last-Score:             -${burden.toFixed(1)} Jahre
+Netto-Effekt:           ${(protection - burden).toFixed(1)} Jahre
+ReHMGB1-Proxy:          ${rehmgb1Proxy.toFixed(0)}%
+
+── ERGEBNIS ──────────────────────────────
+PROGNOSE:               ${predictedLE.toFixed(1)} Jahre
+VERBLEIBEND:            ${remainingYears.toFixed(0)} Jahre
+═══════════════════════════════════════════`;
+
+            // Update Chart
+            updateChart(age, remainingYears);
+
+            // Generate Tips
+            generateTips({
+                health, sport, interventions, alcohol, stress, sleep, 
+                inflammation, fasting, hmgb1Blocker, nutrition, smoker, rehmgb1Proxy
+            });
+        }
+
+        // Update Chart
+        function updateChart(age, remainingYears) {
+            const ctx = document.getElementById('lifeChart').getContext('2d');
+
+            if (lifeChartInstance) {
+                lifeChartInstance.destroy();
+            }
+
+            lifeChartInstance = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Bereits gelebt', 'Verbleibende Jahre'],
+                    labels: ['Bereits gelebt', 'Verbleibend (Prognose)'],
                     datasets: [{
-                        data: [age, remainingYears], // Aktuelles Alter und verbleibende Jahre
-                        backgroundColor: ['#4CAF50', '#FFC107'],
+                        data: [age, remainingYears],
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(16, 185, 129, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(59, 130, 246, 1)',
+                            'rgba(16, 185, 129, 1)'
+                        ],
+                        borderWidth: 2
                     }]
                 },
                 options: {
-                    responsive: false,
-                    maintainAspectRatio: false,
+                    responsive: true,
+                    maintainAspectRatio: true,
                     plugins: {
                         legend: {
-                            display: true,
+                            position: 'bottom',
                             labels: {
-                                color: '#000'
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    if (context.dataIndex === 1) {
-                                        return `Noch ${remainingYears} Jahre zu leben`;
-                                    }
-                                    return `Bereits ${age} Jahre gelebt`;
-                                }
+                                color: '#9ca3af',
+                                padding: 20
                             }
                         }
-                    }
-                }
-            });
-
-            // Zentralen Text im Diagramm anzeigen
-            Chart.plugins.register({
-                beforeDraw: function(chart) {
-                    const width = chart.width,
-                          height = chart.height,
-                          ctx = chart.ctx;
-                    ctx.restore();
-                    ctx.font = "bold 1.5rem sans-serif"; /* Größer und fett */
-                    ctx.textBaseline = "middle";
-                    ctx.textAlign = "center";
-                    ctx.fillStyle = '#000'; /* Schriftfarbe Schwarz */
-                    const text = `Noch ${remainingYears} Jahre zu leben`;
-                    ctx.fillText(text, width / 2, height / 2);
-                    ctx.save();
+                    },
+                    cutout: '60%'
                 }
             });
         }
 
-        function animateProgressBar(lifeAge) {
-            const progressBar = document.getElementById('progressBar');
-            const age = parseInt(document.getElementById('age').value);
-            const remainingYears = 120 - lifeAge;
-            const percentage = ((lifeAge - age) / (120 - age)) * 100;
-            progressBar.style.width = percentage + '%';
-            progressBar.textContent = `Noch ${remainingYears.toFixed(1)} Jahre zu leben – ${percentage.toFixed(1)}% des Lebens erreicht`;
+        // Generate Personalized Tips
+        function generateTips(data) {
+            const tips = [];
 
-            // Starte die Animation für den Fortschrittsbalken
-            setTimeout(() => {
-              progressBar.classList.add('active');
-            }, 100);
+            // Prioritized tips based on input values
+            if (data.smoker === 'yes') {
+                tips.push({
+                    icon: '🚭',
+                    title: 'Rauchen aufhören – Höchste Priorität!',
+                    text: 'Rauchen ist der stärkste Einzelfaktor für vorzeitige Alterung. Es erhöht HMGB1 und systemische Entzündung massiv.',
+                    impact: '+8-12 Jahre bei Rauchstopp',
+                    type: 'danger'
+                });
+            }
+
+            if (data.inflammation > 0.3) {
+                tips.push({
+                    icon: '🔥',
+                    title: 'Chronische Entzündung behandeln',
+                    text: 'Chronische Entzündung ist ein Haupttreiber der ReHMGB1-Freisetzung. Sprich mit einem Arzt über anti-inflammatorische Strategien.',
+                    impact: '+4-8 Jahre möglich',
+                    type: 'danger'
+                });
+            }
+
+            if (data.stress > 0.6) {
+                tips.push({
+                    icon: '🧘',
+                    title: 'Stressmanagement priorisieren',
+                    text: 'Hoher chronischer Stress fördert die Freisetzung von HMGB1 und beschleunigt zelluläre Seneszenz.',
+                    impact: '+3-5 Jahre durch Stressreduktion',
+                    type: 'warning'
+                });
+            }
+
+            if (data.sleep < 0.5) {
+                tips.push({
+                    icon: '😴',
+                    title: 'Schlafqualität verbessern',
+                    text: 'Schlechter Schlaf stört die Autophagie und erhöht systemische Entzündungsmarker inkl. HMGB1.',
+                    impact: '+2-4 Jahre durch besseren Schlaf',
+                    type: 'warning'
+                });
+            }
+
+            if (data.sport < 0.4) {
+                tips.push({
+                    icon: '🏃',
+                    title: 'Mehr Bewegung einbauen',
+                    text: 'Moderate körperliche Aktivität verbessert die Kalziumhomöostase und reduziert intrazelluläre Überladung.',
+                    impact: '+3-6 Jahre durch regelmäßigen Sport',
+                    type: 'normal'
+                });
+            }
+
+            if (data.hmgb1Blocker < 0.3) {
+                tips.push({
+                    icon: '🌿',
+                    title: 'HMGB1-Blocker in Betracht ziehen',
+                    text: 'Glycyrrhizin (Süßholzwurzel) kann die entzündliche HMGB1-Aktivität hemmen. Max. 200mg/Tag oder als Tee.',
+                    impact: '+2-4 Jahre möglich (basierend auf Tiermodellen)',
+                    type: 'normal'
+                });
+            }
+
+            if (data.fasting < 0.3) {
+                tips.push({
+                    icon: '⏰',
+                    title: 'Intermittierendes Fasten ausprobieren',
+                    text: '16:8 Fasten aktiviert Autophagie, entfernt zelluläre Trümmer und kann die ReHMGB1-Last senken.',
+                    impact: '+2-3 Jahre durch regelmäßiges Fasten',
+                    type: 'normal'
+                });
+            }
+
+            if (data.nutrition < 0.5) {
+                tips.push({
+                    icon: '🥗',
+                    title: 'Ernährung optimieren',
+                    text: 'Anti-inflammatorische Ernährung (Omega-3, Polyphenole, wenig verarbeitet) reduziert systemische Entzündung.',
+                    impact: '+2-4 Jahre durch bessere Ernährung',
+                    type: 'normal'
+                });
+            }
+
+            if (data.alcohol > 0.5) {
+                tips.push({
+                    icon: '🍷',
+                    title: 'Alkoholkonsum reduzieren',
+                    text: 'Übermäßiger Alkohol fördert Entzündung und beschleunigt zelluläre Alterung.',
+                    impact: '+2-4 Jahre durch moderaten Konsum',
+                    type: 'warning'
+                });
+            }
+
+            if (data.rehmgb1Proxy > 50) {
+                tips.push({
+                    icon: '🧬',
+                    title: 'ReHMGB1-Niveau senken',
+                    text: 'Dein geschätztes ReHMGB1-Niveau ist erhöht. Kombiniere mehrere Strategien: Fasten, Sport, Glycyrrhizin, Stressreduktion.',
+                    impact: 'Kann systemische Alterung um Jahre verzögern',
+                    type: 'danger'
+                });
+            }
+
+            // Good practices
+            if (data.sport >= 0.7) {
+                tips.push({
+                    icon: '💪',
+                    title: 'Weiter so mit dem Sport!',
+                    text: 'Dein Aktivitätsniveau ist hervorragend und schützt deine Muskeln vor ReHMGB1-induzierter Atrophie.',
+                    impact: 'Bereits optimal',
+                    type: 'success'
+                });
+            }
+
+            if (data.health >= 0.8) {
+                tips.push({
+                    icon: '❤️',
+                    title: 'Ausgezeichnete Gesundheit!',
+                    text: 'Dein guter Gesundheitszustand ist die beste Basis für ein langes Leben.',
+                    impact: 'Bereits optimal',
+                    type: 'success'
+                });
+            }
+
+            // Render tips
+            const tipsGrid = document.getElementById('tipsGrid');
+            tipsGrid.innerHTML = tips.slice(0, 6).map(tip => `
+                <div class="tip-card ${tip.type === 'danger' ? 'danger' : tip.type === 'warning' ? 'warning' : ''}">
+                    <div class="tip-header">
+                        <span class="tip-icon">${tip.icon}</span>
+                        <h4>${tip.title}</h4>
+                    </div>
+                    <p>${tip.text}</p>
+                    <div class="impact">${tip.impact}</div>
+                </div>
+            `).join('');
         }
 
-        function showTips() {
-            const health = parseFloat(document.getElementById('health').value);
-            const sport = parseFloat(document.getElementById('sport').value);
-            const smoker = document.getElementById('smoker').value;
-            const alcohol = parseFloat(document.getElementById('alcohol').value);
-            const stress = parseFloat(document.getElementById('stress').value);
-
-            let tips = [];
-            if (health < 0.5) tips.push("Verbessere deinen Gesundheitszustand durch gesunde Ernährung und regelmäßige Arztbesuche.");
-            if (sport < 0.5) tips.push("Bewege dich mehr – tägliche Spaziergänge oder Sport können helfen.");
-            if (smoker === 'yes') tips.push("Hör auf zu rauchen, um deine Lebenserwartung zu erhöhen.");
-            if (alcohol > 0.5) tips.push("Reduziere deinen Alkoholkonsum für ein gesünderes Leben.");
-            if (stress > 0.5) tips.push("Nutze Entspannungstechniken wie Meditation oder Yoga.");
-
-            document.getElementById('tips').style.display = 'block';
-            document.getElementById('tips').innerHTML = `<p>Maßnahmen zur Verbesserung:</p><ul>${tips.map(tip => `<li>${tip}</li>`).join('')}</ul>`;
-        }
-
-        // Initiales Diagramm rendern
+        // Initialize on page load
         document.addEventListener('DOMContentLoaded', () => {
-            updateChart(80); // Testwert, um das Diagramm initial zu rendern
+            calculateLifeAge();
         });
     </script>
-</body>
-</html>
+
+
+</body></html>
